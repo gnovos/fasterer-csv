@@ -15,6 +15,5 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{A faster implementation fo a CSV parser than FasterCSV}
-  s.add_dependency "stringio"
 
 end
