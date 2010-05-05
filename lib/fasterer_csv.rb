@@ -1,7 +1,7 @@
-# say hi to rex!
-
 require 'rubygems'
 require 'stringio'
+
+# say hi to rex!
 
 module FastererCSV
 
