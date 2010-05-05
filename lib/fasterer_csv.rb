@@ -1,8 +1,6 @@
 require 'rubygems'
 require 'stringio'
 
-# say hi to rex!
-
 module FastererCSV
 
   class Table < Array
