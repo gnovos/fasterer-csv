@@ -1,3 +1,5 @@
+# say hi to rex!
+
 require 'rubygems'
 require 'stringio'
 
