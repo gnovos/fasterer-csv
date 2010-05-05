@@ -59,13 +59,17 @@ module FastererCSV
       super(array)
     end
 
-    def [](i)
-      if i.class == Fixnum
-        super
-      else
-        found = headers.index(Row::to_key(i))
-        found ? super(found) : nil
+    def [](*is)
+      is.each do |i|
+        val = if i.class == Fixnum
+          super
+        else
+          found = headers.index(Row::to_key(i))
+          found ? super(found) : nil
+        end
+        return val unless val.nil?
       end
+      nil
     end
 
     def []=(key, val)
@@ -172,7 +176,7 @@ module FastererCSV
         end
         table << row
       elsif field
-        row << (column.empty? ? nil : column.join)        
+        row << (column.empty? ? nil : column.join)
       end
 
       table.each do |line|
