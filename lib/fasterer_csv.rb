@@ -119,7 +119,7 @@ module FastererCSV
     end
 
     def parse(data, quot = '~', sep = ',')
-      q, s, row, column, inquot, clean, maybe, table, field = quot[0], sep[0], [], [], false, true, false, nil, true
+      q, s, row, column, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], [], false, true, false, nil, true, false
 
       data.each_byte do |c|
         next if c == ?\r
@@ -127,44 +127,56 @@ module FastererCSV
         if maybe && c == s
           row << column.join
           column.clear
-          clean, inquot, maybe, field = true, false, false, true
+          clean, inquot, maybe, field, endline = true, false, false, true, false
         elsif maybe && c == ?\n && table.nil?
-          row << column.join
+          row << column.join unless (column.empty? && endline)
           column.clear
-          table = Table.new(row)
-          row, clean, inquot, maybe, field = [], true, false, false, false
+          table = Table.new(row) unless row.empty?
+          row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
         elsif maybe && c == ?\n
-          row << column.join
+          row << column.join unless (column.empty? && endline)
           column.clear
-          table << row
-          row, clean, inquot, maybe, field = [], true, false, false, false
+          table << row unless row.empty?
+          row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
         elsif clean && c == q
-          inquot, clean = true, false
+          inquot, clean, endline = true, false, false
         elsif maybe && c == q
           column << c.chr
-          clean, maybe = false, false
+          clean, maybe, endline = false, false, false
         elsif c == q
-          maybe = true
+          maybe, endline = true, false
         elsif inquot
           column << c.chr
-          clean = false
+          clean, endline = false, false
         elsif c == s
           row << (column.empty? ? nil : column.join)
           column.clear
-          clean, field = true, true
+          clean, field, endline = true, true, false
         elsif c == ?\n && table.nil?
-          row << (column.empty? ? nil : column.join)
+
+          if column.empty? && !endline
+            row << nil
+          elsif !column.empty?
+            row << column.join
+          end
+
           column.clear
-          table = Table.new(row)
-          row, clean, inquot, field = [], true, false, false
+          table = Table.new(row) unless row.empty?
+          row, clean, inquot, field, endline = [], true, false, false, true
         elsif c == ?\n
-          row << (column.empty? ? nil : column.join)
+
+          if column.empty? && !endline
+            row << nil
+          elsif !column.empty?
+            row << column.join
+          end
+
           column.clear
-          table << row
-          row, clean, inquot, field = [], true, false, false
+          table << row unless row.empty?
+          row, clean, inquot, field, endline = [], true, false, false, true
         else
           column << c.chr
-          clean = false
+          clean, endline = false, false
         end
       end
 
@@ -174,14 +186,18 @@ module FastererCSV
         else
           row << (column.empty? ? nil :column.join)
         end
-        table << row
+        if table
+          table << row unless row.empty?
+        else
+          table = Table.new(row) unless row.empty?
+        end
       elsif field
         row << (column.empty? ? nil : column.join)
       end
 
       table.each do |line|
         yield(line)
-      end if block_given?
+      end if table && block_given?
 
       table
     end
