@@ -13,16 +13,19 @@ module FastererCSV
       end
     end
 
-    attr_reader :headers
+    attr_reader :headers, :lines
+
 
     def initialize(headers, fail_on_malformed_columns = true)
       @headers = Table.format_headers(headers)
       @fail_on_malformed_columns = fail_on_malformed_columns
+      @lines = 0
     end
 
     def <<(row)
+      @lines += 1
       if row.class != Row
-        row = Row.new(self, row)
+        row = Row.new(self, row, @lines)
       end
       if @headers.length != row.length
         error = "*** WARNING - COLUMN COUNT MISMATCH - WARNING ***\n*** ROW #{size} : EXPECTED #{@headers.length} : FOUND #{row.length}\n\n"
@@ -54,8 +57,11 @@ module FastererCSV
       @table.headers
     end
 
-    def initialize(table, array)
+    attr_reader :line
+
+    def initialize(table, array, line=-1)
       @table = table
+      @line = line
       super(array)
     end
 
