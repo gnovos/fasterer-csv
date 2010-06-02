@@ -15,11 +15,11 @@ module FastererCSV
 
     attr_reader :headers, :lines
 
-
     def initialize(headers, fail_on_malformed_columns = true)
       @headers = Table.format_headers(headers)
       @fail_on_malformed_columns = fail_on_malformed_columns
       @lines = 0
+      @indexes = {}
     end
 
     def <<(row)
@@ -40,6 +40,64 @@ module FastererCSV
         raise error if @fail_on_malformed_columns
       end
       super(row)
+    end
+
+    def merge(*tables)
+
+      tables.each do |table|
+        matching = self.headers & table.headers
+
+        key = {}
+
+        table.each do |row|
+          matching.each do |match|
+            key[match] = row[match]
+          end
+
+          self.lookup(key) { |r| r.merge(row) }
+        end
+      end
+
+      self
+
+    end
+
+    def index(columns, reindex = false)
+      columns = columns.compact.uniq.sort{ |a, b| a.to_s <=> b.to_s }.map { |column| Row.to_key(column) }
+
+      key = columns.join('|#|')
+
+      @indexes[key] ||= {}
+
+      index = @indexes[key]
+
+      if reindex || index.empty?
+
+        self.each do |row|
+          vkey = columns.map { |column| row[column] }
+          index[vkey] ||= []
+          index[vkey] << row
+        end
+      end
+      index
+    end
+
+    def lookup(key)
+
+      values  = []
+      columns = key.keys.compact.uniq.sort{ |a, b| a.to_s <=> b.to_s }.map do |column|
+        values << key[column]
+        Row.to_key(column)
+      end
+
+      rows = index(columns)[values]
+      if rows && block_given?
+        rows.each do |row|
+          yield(row)
+        end
+      end
+
+      rows
     end
 
   end
@@ -95,9 +153,15 @@ module FastererCSV
       end
     end
 
-    def merge(hsh)
-      hsh.each do |key, value|
-        self[key] = value
+    def merge(row)
+      if row.class == Row
+        row.headers.each do |header|
+          self[header] = row[header]
+        end
+      else
+        row.each do |key, value|
+          self[key] = value
+        end
       end
       self
     end
