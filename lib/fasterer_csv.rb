@@ -176,19 +176,19 @@ module FastererCSV
 
   class << self
 
-    def headers(file, quot = '~', sep = ',', &block)
-      parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, &block)
+    def headers(file, quot = '~', sep = ',', fail_on_malformed = true, &block)
+      parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, fail_on_malformed, &block)
     end
 
-    def read(file, quot = '~', sep = ',', &block)
-      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, &block)
+    def read(file, quot = '~', sep = ',', fail_on_malformed = true, &block)
+      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, &block)
     end
 
-    def parse_headers(data, quot = '~', sep = ',', &block)
-      parse(data, quot, sep, &block).headers
+    def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, &block)
+      parse(data, quot, sep, fail_on_malformed, &block).headers
     end
 
-    def parse(data, quot = '~', sep = ',')
+    def parse(data, quot = '~', sep = ',', fail_on_malformed = true)
       q, s, row, column, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], [], false, true, false, nil, true, false
 
       data.each_byte do |c|
@@ -201,7 +201,7 @@ module FastererCSV
         elsif maybe && c == ?\n && table.nil?
           row << column.join unless (column.empty? && endline)
           column.clear
-          table = Table.new(row) unless row.empty?
+          table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
         elsif maybe && c == ?\n
           row << column.join unless (column.empty? && endline)
@@ -231,7 +231,7 @@ module FastererCSV
           end
 
           column.clear
-          table = Table.new(row) unless row.empty?
+          table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, field, endline = [], true, false, false, true
         elsif c == ?\n
 
@@ -259,7 +259,7 @@ module FastererCSV
         if table
           table << row unless row.empty?
         else
-          table = Table.new(row) unless row.empty?
+          table = Table.new(row, fail_on_malformed) unless row.empty?
         end
       elsif field
         row << (column.empty? ? nil : column.join)
