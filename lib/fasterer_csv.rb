@@ -100,6 +100,14 @@ module FastererCSV
       rows
     end
 
+    def write(file, quot = '~', sep = ',')
+      FastererCSV.write(file, quot, sep) do |out|
+        out << headers
+        each do |row|
+          out << row
+        end
+      end
+    end
   end
 
   class Row < Array
