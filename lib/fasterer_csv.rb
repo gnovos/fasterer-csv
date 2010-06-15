@@ -182,22 +182,72 @@ module FastererCSV
     end
   end
 
+  class NumConverter < Array
+
+    def initialize
+      @int = true
+      @float = true
+      @dot = false
+    end
+
+    def clear
+      @int = true
+      @float = true
+      @dot = false
+      super
+    end
+
+    def <<(ch)
+      if (ch > ?9 || ch < ?0) && ch != ?.
+        @int = false
+        @float = false
+      elsif ch == ?. && @dot
+        @int = false
+        @float = false
+      elsif ch == ?.
+        @int = false
+        @dot = true
+      end
+
+      super(ch.chr)
+    end
+
+    def join
+      if @int
+        super.to_i
+      elsif @float
+        super.to_f
+      else
+        super
+      end
+    end
+
+  end
+
+  class NoConverter < Array
+
+    def <<(ch)
+      super(ch.chr)
+    end
+
+  end
+
   class << self
 
-    def headers(file, quot = '~', sep = ',', fail_on_malformed = true, &block)
-      parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, fail_on_malformed, &block)
+    def headers(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumConverter.new, &block)
+      parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def read(file, quot = '~', sep = ',', fail_on_malformed = true, &block)
-      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, &block)
+    def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumConverter.new, &block)
+      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, &block)
-      parse(data, quot, sep, fail_on_malformed, &block).headers
+    def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NumConverter.new, &block)
+      parse(data, quot, sep, fail_on_malformed, column, &block).headers
     end
 
-    def parse(data, quot = '~', sep = ',', fail_on_malformed = true)
-      q, s, row, column, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], [], false, true, false, nil, true, false
+    def parse(data, quot = '~', sep = ',', fail_on_malformed = true, column = NumConverter.new)
+      q, s, row, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], false, true, false, nil, true, false
 
       data.each_byte do |c|
         next if c == ?\r
@@ -219,12 +269,12 @@ module FastererCSV
         elsif clean && c == q
           inquot, clean, endline = true, false, false
         elsif maybe && c == q
-          column << c.chr
+          column << c
           clean, maybe, endline = false, false, false
         elsif c == q
           maybe, endline = true, false
         elsif inquot
-          column << c.chr
+          column << c
           clean, endline = false, false
         elsif c == s
           row << (column.empty? ? nil : column.join)
@@ -253,7 +303,7 @@ module FastererCSV
           table << row unless row.empty?
           row, clean, inquot, field, endline = [], true, false, false, true
         else
-          column << c.chr
+          column << c
           clean, endline = false, false
         end
       end
@@ -299,7 +349,7 @@ module FastererCSV
       def initialize(file, quot = '~', sep = ',') @io = file; @quot = quot; @sep = sep end
       def <<(row)
         raise "can only write arrays! #{row.class} #{row.inspect}" unless row.class == Array || row.class == Row
-        @io.syswrite FastererCSV::quot_row(row, @quot, @sep);
+        @io.syswrite FastererCSV::quot_row(row, @quot, @sep)
         row
       end
     end
