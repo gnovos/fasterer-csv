@@ -379,15 +379,3 @@ module FastererCSV
   end
 end
 
-data = <<-CSV
-a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p
-,0,1,-1,0.0,1.1,-1.1,~1~,~~,~-1.1~,~1
-.1~,x,~x~,,~1~~1~,
-CSV
-FastererCSV.parse(data, '~', ',', true, FastererCSV::NumericConversion.new)do |row|
-  h = row.to_hash
-  h.keys.sort{|a,b| a.to_s <=> b.to_s}.each do |k|
-    v = h[k]
-    puts "#{k} : #{v} : #{v.class}"
-  end
-end
