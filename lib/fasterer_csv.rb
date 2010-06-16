@@ -210,13 +210,17 @@ module FastererCSV
       super(ch.chr)
     end
 
-    def join
-      if @int
-        super.to_i
+    def convert(as_string = false)
+      if as_string
+        join
+      elsif empty?
+        nil
+      elsif @int
+        join.to_i
       elsif @float
-        super.to_f
+        join.to_f
       else
-        super
+        join
       end
     end
 
@@ -226,6 +230,16 @@ module FastererCSV
 
     def <<(ch)
       super(ch.chr)
+    end
+
+    def convert(as_string = false)
+      if as_string
+        join
+      elsif empty?
+        nil
+      else
+        join
+      end
     end
 
   end
@@ -255,16 +269,16 @@ module FastererCSV
         next if c == ?\r
 
         if maybe && c == s
-          row << column.join
+          row << column.convert(true)
           column.clear
           clean, inquot, maybe, field, endline = true, false, false, true, false
         elsif maybe && c == ?\n && table.nil?
-          row << column.join unless (column.empty? && endline)
+          row << column.convert(true) unless (column.empty? && endline)
           column.clear
           table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
         elsif maybe && c == ?\n
-          row << column.join unless (column.empty? && endline)
+          row << column.convert(true) unless (column.empty? && endline)
           column.clear
           table << row unless row.empty?
           row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
@@ -279,27 +293,19 @@ module FastererCSV
           column << c
           clean, endline = false, false
         elsif c == s
-          row << (column.empty? ? nil : column.join)
+          row << column.convert(false)
           column.clear
           clean, field, endline = true, true, false
         elsif c == ?\n && table.nil?
 
-          if column.empty? && !endline
-            row << nil
-          elsif !column.empty?
-            row << column.join
-          end
+          row << column.convert(false) unless column.empty? && endline
 
           column.clear
           table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, field, endline = [], true, false, false, true
         elsif c == ?\n
 
-          if column.empty? && !endline
-            row << nil
-          elsif !column.empty?
-            row << column.join
-          end
+          row << column.convert(false) unless column.empty? && endline
 
           column.clear
           table << row unless row.empty?
@@ -311,18 +317,14 @@ module FastererCSV
       end
 
       if !clean
-        if maybe
-          row << column.join
-        else
-          row << (column.empty? ? nil :column.join)
-        end
+        row << column.convert(maybe)
         if table
           table << row unless row.empty?
         else
           table = Table.new(row, fail_on_malformed) unless row.empty?
         end
       elsif field
-        row << (column.empty? ? nil : column.join)
+        row << column.convert(maybe)
       end
 
       table.each do |line|
@@ -333,15 +335,18 @@ module FastererCSV
     end
 
     def quot_row(row, q = '~', s = ',')
+      needs_quot = /(?:[#{q}#{s}\n]|^\d+$)/
       row.map do |val|
         if val.nil?
           ""
+        elsif val.class == Numeric
+          val.to_s
         else
           val = String(val)
           if val.length == 0
             q * 2
           else
-            val[/[#{q}#{s}\n]/] ? q + val.gsub(q, q * 2) + q : val
+            val[needs_quot] ? q + val.gsub(q, q * 2) + q : val
           end
         end
       end.join(s) + "\n"
@@ -371,5 +376,18 @@ module FastererCSV
         yield(IOWriter.new(out, quot, sep))
       end
     end
+  end
+end
+
+data = <<-CSV
+a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p
+,0,1,-1,0.0,1.1,-1.1,~1~,~~,~-1.1~,~1
+.1~,x,~x~,,~1~~1~,
+CSV
+FastererCSV.parse(data, '~', ',', true, FastererCSV::NumericConversion.new)do |row|
+  h = row.to_hash
+  h.keys.sort{|a,b| a.to_s <=> b.to_s}.each do |k|
+    v = h[k]
+    puts "#{k} : #{v} : #{v.class}"
   end
 end
