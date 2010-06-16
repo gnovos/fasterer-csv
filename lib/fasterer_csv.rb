@@ -232,23 +232,23 @@ module FastererCSV
 
   class << self
 
-    def headers(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
+    def headers(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
       parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
+    def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
       parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def read_plain(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
+    def read_converted(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
       parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
+    def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
       parse(data, quot, sep, fail_on_malformed, column, &block).headers
     end
 
-    def parse(data, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new)
+    def parse(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new)
       q, s, row, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], false, true, false, nil, true, false
 
       data.each_byte do |c|
