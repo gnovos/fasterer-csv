@@ -1,5 +1,3 @@
-# Say hi to Rex for me!
-
 require 'rubygems'
 require 'stringio'
 
@@ -24,7 +22,7 @@ module FastererCSV
 
     def <<(row)
       @lines += 1
-      if row.class != Row
+      if !row.is_a?(Row)
         row = Row.new(self, row, @lines)
       end
       if @headers.length != row.length
@@ -133,7 +131,7 @@ module FastererCSV
 
     def [](*is)
       is.each do |i|
-        val = if i.class == Fixnum
+        val = if i.is_a? Fixnum
           super
         else
           found = headers.index(Row::to_key(i))
@@ -145,7 +143,7 @@ module FastererCSV
     end
 
     def []=(key, val)
-      if key.class == Fixnum
+      if key.is_a? Fixnum
         super
       else
         key = Row::to_key(key)
@@ -162,7 +160,7 @@ module FastererCSV
     end
 
     def merge(row)
-      if row.class == Row
+      if row.is_a? Row
         row.headers.each do |header|
           self[header] = row[header]
         end
@@ -335,27 +333,33 @@ module FastererCSV
     end
 
     def quot_row(row, q = '~', s = ',')
-      needs_quot = /(?:[#{q}#{s}\n]|^\d+$)/
+      num_quot = /(?:[#{q}#{s}\n]|^\d+$)/
+      need_quot = /[#{q}#{s}\n]/
       row.map do |val|
         if val.nil?
           ""
-        elsif val.class == Numeric
+        elsif val.is_a? Numeric
           val.to_s
         else
+          quot = val.is_a?(Symbol) ? need_quot : num_quot
           val = String(val)
           if val.length == 0
-            q * 2
+              q * 2
           else
-            val[needs_quot] ? q + val.gsub(q, q * 2) + q : val
+            val[quot] ? q + val.gsub(q, q * 2) + q : val
           end
         end
       end.join(s) + "\n"
     end
 
     class IOWriter
-      def initialize(file, quot = '~', sep = ',') @io = file; @quot = quot; @sep = sep end
+      def initialize(file, quot = '~', sep = ',') @first = true; @io = file; @quot = quot; @sep = sep end
       def <<(row)
-        raise "can only write arrays! #{row.class} #{row.inspect}" unless row.class == Array || row.class == Row
+        raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
+        if @first && row.is_a?(Row)
+          @first = false
+          self.<<(row.headers)
+        end
         @io.syswrite FastererCSV::quot_row(row, @quot, @sep)
         row
       end
@@ -378,4 +382,3 @@ module FastererCSV
     end
   end
 end
-
