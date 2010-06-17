@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "fasterer-csv.gemspec",
      "lib/fasterer_csv.rb",
      "pkg/fasterer-csv-0.0.1.gem",
      "pkg/fasterer-csv-0.0.10.gem",
