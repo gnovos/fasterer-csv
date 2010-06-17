@@ -6,7 +6,6 @@ begin
   Jeweler::Tasks.new do |gem|
 
     gem.name                      = %q{fasterer-csv}
-    gem.version                   = "1.0.0"
     gem.authors                   = ["Mason"]
     gem.email                     = %q{mason@chipped.net}
     gem.date                      = Time.now.strftime("%Y-%m-%d")
