@@ -153,13 +153,13 @@ module FastererCSV
       end
     end
 
-    def in_order(columns)
-      columns.map do |column_name|
-        self[column_name].nil? ? '\N' : self[column_name]
+    def pull(*columns)
+      columns.map do |column|
+        self[*column]
       end
     end
 
-    def merge(row)
+    def merge!(row)
       if row.is_a? Row
         row.headers.each do |header|
           self[header] = row[header]
@@ -178,6 +178,28 @@ module FastererCSV
         memo
       end
     end
+
+    def key?(key)
+      keys.include?(Row.to_key(key))
+    end
+
+    def value?(value)
+      values.include?(value)
+    end
+
+    def method_missing(method, *args, &block)
+      to_hash.send(method, *args, &block)
+    end
+
+    alias_method :keys, :headers
+    alias_method :values, :to_a
+
+    alias_method :has_key?, :key?
+    alias_method :member?,  :key?
+    alias_method :include?, :key?
+
+    alias_method :has_value?, :value?
+
   end
 
   class NumericConversion < Array
@@ -382,3 +404,4 @@ module FastererCSV
     end
   end
 end
+

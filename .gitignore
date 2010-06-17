@@ -1,1 +1,12 @@
+.DS_Store
+
+
+*.swp
+
+coverage
+rdoc
+pkg
 .idea
+
+
+*.gemspec
