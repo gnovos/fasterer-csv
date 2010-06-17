@@ -292,7 +292,7 @@ module FastererCSV
       parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
-    def read_converted(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
+    def convread(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
       parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 

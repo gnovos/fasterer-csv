@@ -125,7 +125,7 @@ a,b,c,d,e,f,g,h,i,j,k,l,m,
       end
     end
 
-    describe "read_converted" do
+    describe "convread" do
       it "" do
 
       end
