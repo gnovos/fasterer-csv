@@ -106,6 +106,9 @@ module FastererCSV
         end
       end
     end
+
+    alias_method :rows, :to_a
+
   end
 
   class Row < Array
@@ -264,6 +267,19 @@ module FastererCSV
 
   end
 
+  class IOWriter
+    def initialize(file, quot = '~', sep = ',') @first = true; @io = file; @quot = quot; @sep = sep end
+    def <<(row)
+      raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
+      if @first && row.is_a?(Row)
+        @first = false
+        self.<<(row.headers)
+      end
+      @io.syswrite FastererCSV::quot_row(row, @quot, @sep)
+      row
+    end
+  end
+
   class << self
 
     def headers(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
@@ -372,19 +388,6 @@ module FastererCSV
           end
         end
       end.join(s) + "\n"
-    end
-
-    class IOWriter
-      def initialize(file, quot = '~', sep = ',') @first = true; @io = file; @quot = quot; @sep = sep end
-      def <<(row)
-        raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
-        if @first && row.is_a?(Row)
-          @first = false
-          self.<<(row.headers)
-        end
-        @io.syswrite FastererCSV::quot_row(row, @quot, @sep)
-        row
-      end
     end
 
     def generate(quot = '~', sep = ',', &block)
