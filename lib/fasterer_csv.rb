@@ -108,6 +108,7 @@ module FastererCSV
     end
 
     alias_method :rows, :to_a
+    alias_method :merge!, :merge
 
   end
 
@@ -162,7 +163,7 @@ module FastererCSV
       end
     end
 
-    def merge!(row)
+    def merge(row)
       if row.is_a? Row
         row.headers.each do |header|
           self[header] = row[header]
@@ -202,6 +203,7 @@ module FastererCSV
     alias_method :include?, :key?
 
     alias_method :has_value?, :value?
+    alias_method :merge!, :merge
 
   end
 

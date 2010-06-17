@@ -94,7 +94,7 @@ describe "FastererCSV" do
 
     before do
       @data = <<-CSV
-a,b,c,d,e,f,g,h,i,j,k,l,m,n
+a,b,c,d,e,f,g,h,i,j,k,l,m,
 ,,1,1.1,-1,-1.1,1.1.1,~1~,a,~a~,~a~~a~,~a
 ~~a~,~,~,
 
@@ -105,11 +105,16 @@ a,b,c,d,e,f,g,h,i,j,k,l,m,n
     describe "parse" do
       it "works" do
         table = FastererCSV.parse(@data)
-        table.headers.should == [:a, :b, :c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n]
+        table.headers.should == [:a, :b, :c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:_]
         table.lines.should == 2
 
         table[0].should == [nil, nil, "1", "1.1", "-1", "-1.1", "1.1.1", "1", "a", "a", "a~a", "a\n~a", ",", nil]
         table[1].should == ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "14"]
+
+        row = table[1]
+        row.pull(:a, nil, 'd').should == ["0","14","3"]
+        row[:b].should == "1"
+        row["b"].should == "1"
 
       end
     end
