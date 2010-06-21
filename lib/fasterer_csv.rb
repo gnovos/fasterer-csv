@@ -274,9 +274,9 @@ module FastererCSV
     def <<(row)
       raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
       if @first && row.is_a?(Row)
-        @first = false
         self.<<(row.headers)
       end
+      @first = false
       @io.syswrite FastererCSV::quot_row(row, @quot, @sep, @quotenum)
       row
     end
