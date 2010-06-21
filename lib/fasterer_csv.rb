@@ -270,14 +270,14 @@ module FastererCSV
   end
 
   class IOWriter
-    def initialize(file, quot = '~', sep = ',') @first = true; @io = file; @quot = quot; @sep = sep end
+    def initialize(file, quot = '~', sep = ',', quotenum = false) @first = true; @io = file; @quot = quot; @sep = sep; @quotenum = quotenum end
     def <<(row)
       raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
       if @first && row.is_a?(Row)
         @first = false
         self.<<(row.headers)
       end
-      @io.syswrite FastererCSV::quot_row(row, @quot, @sep)
+      @io.syswrite FastererCSV::quot_row(row, @quot, @sep, @quotenum)
       row
     end
   end
@@ -372,7 +372,7 @@ module FastererCSV
       table
     end
 
-    def quot_row(row, q = '~', s = ',')
+    def quot_row(row, q = '~', s = ',', numquot = false)
       num_quot = /(?:[#{q}#{s}\n]|^\d+$)/
       need_quot = /[#{q}#{s}\n]/
       row.map do |val|
@@ -381,7 +381,7 @@ module FastererCSV
         elsif val.is_a? Numeric
           val.to_s
         else
-          quot = val.is_a?(Symbol) ? need_quot : num_quot
+          quot = (val.is_a?(Symbol) || !numquot) ? need_quot : num_quot
           val = String(val)
           if val.length == 0
               q * 2
@@ -398,13 +398,13 @@ module FastererCSV
       builder.string
     end
 
-    def write(out, quot = '~', sep = ',', &block)
+    def write(out, quot = '~', sep = ',', quotenum = false, &block)
       if out.class == String
         File.open(out, "w") do |io|
-          write(io, quot, sep, &block)
+          write(io, quot, sep, quotenum, &block)
         end
       else
-        yield(IOWriter.new(out, quot, sep))
+        yield(IOWriter.new(out, quot, sep, quotenum))
       end
     end
   end
