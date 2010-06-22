@@ -32,7 +32,7 @@ module FastererCSV
           len = header.to_s.length if header.to_s.length > len
         end
         headers.each_with_index do |header, i|
-           error << sprintf("%-32s : %s\n", header, row[i])
+          error << sprintf("%-32s : %s\n", header, row[i])
         end
         puts error
         raise error if @fail_on_malformed_columns
@@ -61,7 +61,7 @@ module FastererCSV
     end
 
     def index(columns, reindex = false)
-      columns = columns.compact.uniq.sort{ |a, b| a.to_s <=> b.to_s }.map { |column| Row.to_key(column) }
+      columns = columns.compact.uniq.sort { |a, b| a.to_s <=> b.to_s }.map { |column| Row.to_key(column) }
 
       key = columns.join('|#|')
 
@@ -83,7 +83,7 @@ module FastererCSV
     def lookup(key)
 
       values  = []
-      columns = key.keys.compact.uniq.sort{ |a, b| a.to_s <=> b.to_s }.map do |column|
+      columns = key.keys.compact.uniq.sort { |a, b| a.to_s <=> b.to_s }.map do |column|
         values << key[column]
         Row.to_key(column)
       end
@@ -199,7 +199,7 @@ module FastererCSV
     alias_method :values, :to_a
 
     alias_method :has_key?, :key?
-    alias_method :member?,  :key?
+    alias_method :member?, :key?
     alias_method :include?, :key?
 
     alias_method :has_value?, :value?
@@ -270,7 +270,10 @@ module FastererCSV
   end
 
   class IOWriter
-    def initialize(file, quot = '~', sep = ',', quotenum = false) @first = true; @io = file; @quot = quot; @sep = sep; @quotenum = quotenum end
+    def initialize(file, quot = '~', sep = ',', quotenum = false)
+      @first = true; @io = file; @quot = quot; @sep = sep; @quotenum = quotenum
+    end
+
     def <<(row)
       raise "can only write arrays! #{row.class} #{row.inspect}" unless row.is_a? Array
       if @first && row.is_a?(Row)
@@ -285,23 +288,15 @@ module FastererCSV
   class << self
 
     def headers(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
-      parse_headers(File.open(file, 'r') {|io| io.gets }, quot, sep, fail_on_malformed, column, &block)
+      parse_headers(File.open(file, 'r') { |io| io.gets }, quot, sep, fail_on_malformed, column, &block)
     end
 
     def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
-      read_stream(File.open(file, 'r'), File.size(file), quot, sep, fail_on_malformed, column, &block)
+      parse(File.open(file, 'r') { io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
     def convread(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
-      convread_stream(File.open(file, 'r'), File.size(file), quot, sep, fail_on_malformed, column, &block)
-    end
-
-    def read_stream(io, stream_length, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
-      parse(io.sysread(stream_length), quot, sep, fail_on_malformed, column, &block)
-    end
-
-    def convread_stream(io, stream_length, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
-      parse(io.sysread(stream_length), quot, sep, fail_on_malformed, column, &block)
+      parse(File.open(file, 'r') { io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
     def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
@@ -392,7 +387,7 @@ module FastererCSV
           quot = (val.is_a?(Symbol) || !numquot) ? need_quot : num_quot
           val = String(val)
           if val.length == 0
-              q * 2
+            q * 2
           else
             val[quot] ? q + val.gsub(q, q * 2) + q : val
           end
