@@ -292,11 +292,11 @@ module FastererCSV
     end
 
     def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
-      parse(File.open(file, 'r') { io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
+      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
     def convread(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
-      parse(File.open(file, 'r') { io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
+      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
     end
 
     def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
