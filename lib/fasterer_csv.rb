@@ -398,15 +398,24 @@ module FastererCSV
       builder.string
     end
 
-    def write(out, quot = '~', sep = ',', quotenum = false, &block)
-      if out.class == String
-        File.open(out, "w") do |io|
-          write(io, quot, sep, quotenum, &block)
+    def write(data, quot = '~', sep = ',', quotenum = false, &block)
+      out(data, 'w', quot, sep, quotenum, &block)
+    end
+
+    def append(data, quot = '~', sep = ',', quotenum = false, &block)
+      out(data, 'a', quot, sep, quotenum, &block)
+    end
+
+    def out(data, mode = 'w', quot = '~', sep = ',', quotenum = false, &block)
+      if data.class == String
+        File.open(data, mode) do |io|
+          out(io, mode, quot, sep, quotenum, &block)
         end
       else
-        yield(IOWriter.new(out, quot, sep, quotenum))
+        yield(IOWriter.new(data, quot, sep, quotenum))
       end
     end
+
   end
 end
 
