@@ -5,11 +5,19 @@
 
 Gem::Specification.new do |s|
   s.name = %q{fasterer-csv}
+<<<<<<< HEAD
   s.version = "1.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mason"]
   s.date = %q{2010-07-02}
+=======
+  s.version = "1.5.3"
+
+  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.authors = ["Mason"]
+  s.date = %q{2010-06-22}
+>>>>>>> 78337ea0ff024d0c73c395d1ad692d6a704e12b3
   s.description = %q{CSV parsing awesomeness}
   s.email = %q{mason@chipped.net}
   s.extra_rdoc_files = [
@@ -43,6 +51,10 @@ Gem::Specification.new do |s|
      "pkg/fasterer-csv-1.2.0.gem",
      "pkg/fasterer-csv-1.4.0.gem",
      "pkg/fasterer-csv-1.4.1.gem",
+<<<<<<< HEAD
+=======
+     "pkg/fasterer-csv-1.5.2.gem",
+>>>>>>> 78337ea0ff024d0c73c395d1ad692d6a704e12b3
      "spec/fasterer_csv_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb"
