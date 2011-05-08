@@ -11,11 +11,12 @@ module FastererCSV
       end
     end
 
-    attr_reader :headers, :lines
+    attr_reader :headers, :lines, :line_block
 
-    def initialize(headers, fail_on_malformed_columns = true)
+    def initialize(headers, fail_on_malformed_columns = true, &line_block)
       @headers = Table.format_headers(headers)
       @fail_on_malformed_columns = fail_on_malformed_columns
+      @line_block = line_block
       @lines = 0
       @indexes = {}
     end
@@ -37,8 +38,13 @@ module FastererCSV
         puts error
         raise error if @fail_on_malformed_columns
       end
-      super(row)
+      if line_block
+        line_block.call(row)
+      else
+        super(row)
+      end
     end
+    alias_method :push, :<<
 
     def merge(*tables)
 
@@ -122,7 +128,7 @@ module FastererCSV
     end
 
     def headers
-      @table.headers
+      @headers ||= @table.headers.dup
     end
 
     attr_reader :line
@@ -293,21 +299,25 @@ module FastererCSV
     end
 
     def read(file, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
-      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
+      File.open(file, 'r') do |io|
+        parse(io, quot, sep, fail_on_malformed, column, &block)
+      end
     end
 
     def convread(file, quot = '~', sep = ',', fail_on_malformed = true, column = NumericConversion.new, &block)
-      parse(File.open(file, 'r') { |io| io.sysread(File.size(file)) }, quot, sep, fail_on_malformed, column, &block)
+      File.open(file, 'r') do |io|
+        parse(io, quot, sep, fail_on_malformed, column, &block)
+      end
     end
 
     def parse_headers(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
       parse(data, quot, sep, fail_on_malformed, column, &block).headers
     end
 
-    def parse(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new)
+    def parse(io, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new, &block)
       q, s, row, inquot, clean, maybe, table, field, endline = quot.ord, sep.ord, [], false, true, false, nil, true, false
 
-      data.each_byte do |c|
+      io.each_byte do |c|
         next if c == ?\r.ord
 
         if maybe && c == s
@@ -317,7 +327,7 @@ module FastererCSV
         elsif maybe && c == ?\n.ord && table.nil?
           row << column.convert(true) unless (column.empty? && endline)
           column.clear
-          table = Table.new(row, fail_on_malformed) unless row.empty?
+          table = Table.new(row, fail_on_malformed, &block) unless row.empty?
           row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
         elsif maybe && c == ?\n.ord
           row << column.convert(true) unless (column.empty? && endline)
@@ -343,7 +353,7 @@ module FastererCSV
           row << column.convert(false) unless column.empty? && endline
 
           column.clear
-          table = Table.new(row, fail_on_malformed) unless row.empty?
+          table = Table.new(row, fail_on_malformed, &block) unless row.empty?
           row, clean, inquot, field, endline = [], true, false, false, true
         elsif c == ?\n.ord
 
@@ -363,15 +373,11 @@ module FastererCSV
         if table
           table << row unless row.empty?
         else
-          table = Table.new(row, fail_on_malformed) unless row.empty?
+          table = Table.new(row, fail_on_malformed, &block) unless row.empty?
         end
       elsif field
         row << column.convert(maybe)
       end
-
-      table.each do |line|
-        yield(line)
-      end if table && block_given?
 
       table
     end
@@ -422,4 +428,3 @@ module FastererCSV
 
   end
 end
-
