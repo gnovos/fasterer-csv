@@ -159,6 +159,7 @@ module FastererCSV
 
     def pull(*columns)
       columns.map do |column|
+        column = [nil] if column.nil?
         self[*column]
       end
     end
@@ -221,13 +222,13 @@ module FastererCSV
     end
 
     def <<(ch)
-      if ch == ?-
+      if ch == ?-.ord
         @float = @int = size == 0
-      elsif (ch > ?9 || ch < ?0) && ch != ?.
+      elsif (ch > ?9.ord || ch < ?0.ord) && ch != ?..ord
         @int = @float = false
-      elsif ch == ?. && @dot
+      elsif ch == ?..ord && @dot
         @int = @float = false
-      elsif ch == ?.
+      elsif ch == ?..ord
         @int = false
         @dot = true
       end
@@ -304,21 +305,21 @@ module FastererCSV
     end
 
     def parse(data, quot = '~', sep = ',', fail_on_malformed = true, column = NoConversion.new)
-      q, s, row, inquot, clean, maybe, table, field, endline = quot[0], sep[0], [], false, true, false, nil, true, false
+      q, s, row, inquot, clean, maybe, table, field, endline = quot.ord, sep.ord, [], false, true, false, nil, true, false
 
       data.each_byte do |c|
-        next if c == ?\r
+        next if c == ?\r.ord
 
         if maybe && c == s
           row << column.convert(true)
           column.clear
           clean, inquot, maybe, field, endline = true, false, false, true, false
-        elsif maybe && c == ?\n && table.nil?
+        elsif maybe && c == ?\n.ord && table.nil?
           row << column.convert(true) unless (column.empty? && endline)
           column.clear
           table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, maybe, field, endline = [], true, false, false, false, true
-        elsif maybe && c == ?\n
+        elsif maybe && c == ?\n.ord
           row << column.convert(true) unless (column.empty? && endline)
           column.clear
           table << row unless row.empty?
@@ -337,14 +338,14 @@ module FastererCSV
           row << column.convert(false)
           column.clear
           clean, field, endline = true, true, false
-        elsif c == ?\n && table.nil?
+        elsif c == ?\n.ord && table.nil?
 
           row << column.convert(false) unless column.empty? && endline
 
           column.clear
           table = Table.new(row, fail_on_malformed) unless row.empty?
           row, clean, inquot, field, endline = [], true, false, false, true
-        elsif c == ?\n
+        elsif c == ?\n.ord
 
           row << column.convert(false) unless column.empty? && endline
 

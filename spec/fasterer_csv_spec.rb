@@ -21,7 +21,7 @@ describe "FastererCSV" do
       it "works" do
 
         conv = FastererCSV::NumericConversion.new
-        conv << ?1
+        conv << ?1.ord
         conv.convert(true).class.should == String
         conv.convert(true).should == "1"
 
@@ -29,37 +29,37 @@ describe "FastererCSV" do
         conv.convert(false).should == 1
 
         conv.clear
-        conv << ?-
-        conv << ?1
+        conv << ?-.ord
+        conv << ?1.ord
         conv.convert(false).class.should == Fixnum
         conv.convert(false).should == -1
 
         conv.clear
-        conv << ?1
-        conv << ?.
-        conv << ?1
+        conv << ?1.ord
+        conv << ?..ord
+        conv << ?1.ord
         conv.convert(false).class.should == Float
         conv.convert(false).should == 1.1
 
         conv.clear
-        conv << ?-
-        conv << ?1
-        conv << ?.
-        conv << ?1
+        conv << ?-.ord
+        conv << ?1.ord
+        conv << ?..ord
+        conv << ?1.ord
         conv.convert(false).class.should == Float
         conv.convert(false).should == -1.1
 
         conv.clear
-        conv << ?1
-        conv << ?.
-        conv << ?1
-        conv << ?.
-        conv << ?1
+        conv << ?1.ord
+        conv << ?..ord
+        conv << ?1.ord
+        conv << ?..ord
+        conv << ?1.ord
         conv.convert(false).class.should == String
         conv.convert(false).should == "1.1.1"
 
         conv.clear
-        conv << ?a
+        conv << ?a.ord
         conv.convert(false).class.should == String
         conv.convert(false).should == "a"
 
@@ -74,7 +74,7 @@ describe "FastererCSV" do
       it "works" do
 
         conv = FastererCSV::NoConversion.new
-        conv << ?1
+        conv << ?1.ord
         conv.convert(true).class.should == String
         conv.convert(false).class.should == String
 
@@ -105,11 +105,11 @@ a,b,c,d,e,f,g,h,i,j,k,l,m,
     describe "parse" do
       it "works" do
         table = FastererCSV.parse(@data)
-        table.headers.should == [:a, :b, :c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:_]
+        table.headers.should == [:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :_]
         table.lines.should == 2
 
-        table[0].should == [nil, nil, "1", "1.1", "-1", "-1.1", "1.1.1", "1", "a", "a", "a~a", "a\n~a", ",", nil]
-        table[1].should == ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "14"]
+        table[0].should == [nil, nil, "1", "1.1", "-1", "-1.1", "1.1.1", "1", "a", "a", "a~a", "a\n~a",  ",", nil ]
+        table[1].should == ["0", "1", "2",   "3",  "4",    "5",     "6", "7", "8", "9",  "10",    "11", "12", "14"]
 
         row = table[1]
         row.pull(:a, nil, 'd').should == ["0","14","3"]

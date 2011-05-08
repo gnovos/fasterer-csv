@@ -6,21 +6,9 @@ Depends on various stuff and such it almost always reads at least twice as fast,
 
 It's got some caveats, though... which you'll discover in fun and entertaining ways.
 
-Also, it's not *completely* a drop in replacement, but it's really really close.  Why do it this way?  Because I hate you and want to make you life a little more difficult whenever possible.
+Also, it's not *completely* a drop in replacement, but it's really really close.  Why do it this way?  To be contrary.
 
-
-== Note on Patches/Pull Requests
- 
-* Spoon the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request.
-* Delete everything you've done at the point because I'm probably going to reimplement it anyways.
-
-== Monkyright
+== Monkeyright
 
 Monkeyright (m) 2010 Mason. See LICENSE for details.
 
